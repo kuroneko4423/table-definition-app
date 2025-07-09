@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(${project.id != null ? 'プロジェクト編集' : 'プロジェクト新規作成'}, ~{::content})}">
+<head>
+    <title>プロジェクトフォーム</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container mt-4">
+        <h1 class="mb-4" th:text="${project.id != null ? 'プロジェクト編集' : 'プロジェクト新規作成'}"></h1>
+        
+        <form th:action="${project.id != null ? '/projects/' + project.id : '/projects'}" 
+              th:object="${project}" method="post">
+            
+            <div class="mb-3">
+                <label for="code" class="form-label">プロジェクトコード <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="code" th:field="*{code}" 
+                       placeholder="例: PRJ001" required>
+                <div class="form-text">半角英数字、ハイフン、アンダースコアが使用できます</div>
+                <div th:if="${#fields.hasErrors('code')}" class="text-danger" th:errors="*{code}"></div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="name" class="form-label">プロジェクト名 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" th:field="*{name}" 
+                       placeholder="例: 販売管理システム" required>
+                <div th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">説明</label>
+                <textarea class="form-control" id="description" th:field="*{description}" 
+                          rows="3" placeholder="プロジェクトの説明を入力してください"></textarea>
+                <div th:if="${#fields.hasErrors('description')}" class="text-danger" th:errors="*{description}"></div>
+            </div>
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> 保存
+                </button>
+                <a href="/projects" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> キャンセル
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

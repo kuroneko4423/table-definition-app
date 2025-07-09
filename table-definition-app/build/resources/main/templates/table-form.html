@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(${table.id == null ? 'テーブル新規作成' : 'テーブル編集'}, ~{::content})}">
+<head>
+    <title>テーブルフォーム</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/projects">プロジェクト一覧</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/projects/{id}/tables(id=${project.id})}" th:text="${project.name}"></a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${table.id == null} ? 'テーブル新規作成' : 'テーブル編集'"></li>
+            </ol>
+        </nav>
+        
+        <h1 class="mb-4" th:text="${table.id == null} ? 'テーブル新規作成' : 'テーブル編集'">Create/Edit Table</h1>
+
+        <form th:action="@{/projects/{projectId}/tables(projectId=${project.id})}" th:object="${table}" method="post">
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{projectId}">
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0" th:text="#{table.name}">Table Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label" th:text="#{table.schemaName}">Schema Name</label>
+                            <input type="text" class="form-control" th:field="*{schemaName}">
+                            <div class="form-text">例: public, dbo, app</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label" th:text="#{table.physicalName}">Physical Name</label>
+                            <input type="text" class="form-control" th:field="*{physicalName}" 
+                                   th:classappend="${#fields.hasErrors('physicalName')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('physicalName')}" 
+                                 th:errors="*{physicalName}"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label" th:text="#{table.logicalName}">Logical Name</label>
+                            <input type="text" class="form-control" th:field="*{logicalName}"
+                                   th:classappend="${#fields.hasErrors('logicalName')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('logicalName')}" 
+                                 th:errors="*{logicalName}"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{table.description}">Description</label>
+                        <textarea class="form-control" th:field="*{description}" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" th:text="#{table.columns}">Columns</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addColumn()" 
+                            th:text="#{button.add}">Add Column</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="columnsTable">
+                            <thead>
+                                <tr>
+                                    <th th:text="#{column.physicalName}">Physical Name</th>
+                                    <th th:text="#{column.logicalName}">Logical Name</th>
+                                    <th th:text="#{column.dataType}">Data Type</th>
+                                    <th th:text="#{column.length}">Length</th>
+                                    <th th:text="#{column.nullable}">Nullable</th>
+                                    <th th:text="#{column.primaryKey}">PK</th>
+                                    <th th:text="#{column.unique}">Unique</th>
+                                    <th th:text="#{column.defaultValue}">Default</th>
+                                    <th th:text="#{column.description}">Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="columnsList">
+                                <tr th:each="column, stat : ${table.columns}" class="column-row">
+                                    <input type="hidden" th:field="*{columns[__${stat.index}__].id}">
+                                    <input type="hidden" th:field="*{columns[__${stat.index}__].columnOrder}" 
+                                           th:value="${stat.index + 1}">
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" 
+                                               th:field="*{columns[__${stat.index}__].physicalName}" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" 
+                                               th:field="*{columns[__${stat.index}__].logicalName}" required>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm" 
+                                                th:field="*{columns[__${stat.index}__].dataType}" required>
+                                            <option value="VARCHAR">VARCHAR</option>
+                                            <option value="CHAR">CHAR</option>
+                                            <option value="TEXT">TEXT</option>
+                                            <option value="INTEGER">INTEGER</option>
+                                            <option value="BIGINT">BIGINT</option>
+                                            <option value="DECIMAL">DECIMAL</option>
+                                            <option value="DATE">DATE</option>
+                                            <option value="TIMESTAMP">TIMESTAMP</option>
+                                            <option value="BOOLEAN">BOOLEAN</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm" 
+                                               th:field="*{columns[__${stat.index}__].length}">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input" 
+                                               th:field="*{columns[__${stat.index}__].nullable}">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input" 
+                                               th:field="*{columns[__${stat.index}__].primaryKey}">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input" 
+                                               th:field="*{columns[__${stat.index}__].uniqueKey}">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" 
+                                               th:field="*{columns[__${stat.index}__].defaultValue}">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" 
+                                               th:field="*{columns[__${stat.index}__].description}">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                onclick="removeColumn(this)">×</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" th:text="#{button.save}">Save</button>
+                <a th:href="@{/projects/{projectId}/tables(projectId=${project.id})}" class="btn btn-secondary" th:text="#{button.cancel}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

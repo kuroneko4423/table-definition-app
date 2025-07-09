@@ -1,0 +1,129 @@
+{
+  "name": "AI Development",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": true,
+      "installGradle": true
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // general
+        "shd101wyy.markdown-preview-enhanced",
+        "yzhang.markdown-all-in-one",
+        "takumii.markdowntable",
+        "DavidAnson.vscode-markdownlint",
+        "jebbs.plantuml",
+        "redhat.vscode-yaml",
+        "hediet.vscode-drawio",
+        "ms-vscode.vscode-json",
+        "streetsidesoftware.code-spell-checker",
+        "ms-vscode.sublime-commands",
+        "mechatroner.rainbow-csv",
+        // frontend
+        "george-alisson.html-preview-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "Vue.volar",
+        "ms-vscode.vscode-html-language-features",
+        // java
+        "ms-vscode.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "vscjava.vscode-spring-initializr",
+        "vscjava.vscode-gradle",
+        // python
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "ms-python.django",
+        "ms-toolsai.jupyter",
+        "ms-python.pylint",
+        // ai agent
+        "RooVeterinaryInc.roo-cline",
+        // database
+        "cweijan.vscode-database-client2",
+        // mobile
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "dart.flutterSdkPath": "/opt/flutter",
+        "java.jdt.ls.java.home": "/usr/local/sdkman/candidates/java/current",
+        "java.configuration.runtimes": [
+          {
+            "name": "JavaSE-17",
+            "path": "/usr/local/sdkman/candidates/java/current"
+          }
+        ]
+      }
+    }
+  },
+
+  "postCreateCommand": "pip install --upgrade pip && pip install django fastapi streamlit uvicorn LightGBM && npm install -g @google/gemini-cli && sudo apt-get update && sudo apt-get install -y wget curl unzip ninja-build libgtk-3-dev && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add - && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list && sudo apt-get update && sudo apt-get install -y google-chrome-stable && curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.5-stable.tar.xz | sudo tar -xJ -C /opt && sudo chown -R $(whoami) /opt/flutter && sudo mkdir -p /opt/android-sdk/cmdline-tools && cd /opt/android-sdk/cmdline-tools && sudo wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && sudo unzip -q commandlinetools-linux-11076708_latest.zip && sudo mv cmdline-tools latest && sudo rm commandlinetools-linux-11076708_latest.zip && sudo chown -R $(whoami) /opt/android-sdk && /opt/flutter/bin/flutter config --no-analytics && /opt/flutter/bin/flutter doctor",
+
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin:/opt/flutter/bin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools",
+    "CHROME_EXECUTABLE": "/usr/bin/google-chrome",
+    "ANDROID_HOME": "/opt/android-sdk"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+
+  "workspaceFolder": "/workspace",
+
+  "remoteUser": "vscode",
+
+  "forwardPorts": [
+    3000,
+    8000,
+    8080,
+    8501
+  ],
+
+  "portsAttributes": {
+    "3000": {
+      "label": "Flutter Web Dev Server"
+    },
+    "8000": {
+      "label": "Django/FastAPI Server"
+    },
+    "8080": {
+      "label": "Spring Boot Server"
+    },
+    "8501": {
+      "label": "Streamlit App"
+    }
+  },
+
+  "postStartCommand": "echo 'Container started. Run \"claude auth\" to authenticate with Claude Code.'"
+}

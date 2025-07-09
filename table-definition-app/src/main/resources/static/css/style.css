@@ -1,0 +1,62 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 500;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.column-row input[type="text"],
+.column-row input[type="number"],
+.column-row select {
+    min-width: 100px;
+}
+
+.column-row td {
+    vertical-align: middle;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.btn-group-sm > .btn, .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .column-row input[type="text"],
+    .column-row input[type="number"],
+    .column-row select {
+        min-width: 80px;
+    }
+}
+
+/* Table selection styles */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+input[type="radio"] {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.alert-info {
+    border-left: 4px solid #17a2b8;
+}
