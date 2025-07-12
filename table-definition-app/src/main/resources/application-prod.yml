@@ -1,0 +1,52 @@
+# Production Environment Configuration
+
+# Server Configuration
+server:
+  port: 8080
+
+# Database Configuration - Supabase PostgreSQL for production
+spring:
+  datasource:
+    url: jdbc:postgresql://${SUPABASE_DB_HOST:db.your-project.supabase.co}:${SUPABASE_DB_PORT:5432}/${SUPABASE_DB_NAME:postgres}?user=${SUPABASE_DB_USERNAME:postgres}&password=${SUPABASE_DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    
+    # Connection Pool Configuration for Supabase
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  
+  # SQL Initialization
+  sql:
+    init:
+      mode: never
+      platform: postgresql
+  
+  # JPA Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  
+  # H2 Console
+  h2:
+    console:
+      enabled: false
+  
+  # Thymeleaf Configuration
+  thymeleaf:
+    cache: true
+
+# Logging
+logging:
+  level:
+    com.example.tabledef: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN

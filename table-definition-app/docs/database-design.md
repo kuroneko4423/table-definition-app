@@ -4,7 +4,7 @@
 
 ### 1.1 データベース構成
 - **開発環境**: H2 Database (インメモリ)
-- **本番環境**: PostgreSQL
+- **本番環境**: PostgreSQL (Supabase対応)
 
 ### 1.2 文字コード
 - UTF-8
@@ -30,16 +30,18 @@
 | # | カラム名（物理） | カラム名（論理） | データ型 | 長さ | NULL | PK | UK | デフォルト | 説明 |
 |---|-----------------|-----------------|----------|------|------|----|----|-----------|------|
 | 1 | id | ID | BIGINT | - | × | ○ | × | AUTO_INCREMENT | プライマリキー |
-| 2 | name | プロジェクト名 | VARCHAR | 255 | × | × | ○ | - | プロジェクト名 |
-| 3 | description | 説明 | TEXT | - | ○ | × | × | - | プロジェクトの説明 |
-| 4 | created_at | 作成日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード作成日時 |
-| 5 | updated_at | 更新日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード更新日時 |
+| 2 | code | プロジェクトコード | VARCHAR | 50 | × | × | ○ | - | プロジェクト識別コード |
+| 3 | name | プロジェクト名 | VARCHAR | 100 | × | × | × | - | プロジェクト名 |
+| 4 | description | 説明 | TEXT | - | ○ | × | × | - | プロジェクトの説明 |
+| 5 | created_at | 作成日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード作成日時 |
+| 6 | updated_at | 更新日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード更新日時 |
 
 #### インデックス
 | インデックス名 | カラム | 種別 |
 |---------------|--------|------|
 | PRIMARY | id | PRIMARY KEY |
-| uk_projects_name | name | UNIQUE |
+| uk_projects_code | code | UNIQUE |
+| idx_projects_code | code | INDEX |
 
 ### 2.2 table_definitions（テーブル定義）
 
@@ -67,12 +69,12 @@
 |---------------|--------|------|
 | PRIMARY | id | PRIMARY KEY |
 | idx_table_definitions_project_id | project_id | INDEX |
-| uk_table_definitions_project_physical | project_id, physical_name | UNIQUE |
+| uk_project_physical_name | project_id, physical_name | UNIQUE |
 
 #### 外部キー
 | 外部キー名 | カラム | 参照テーブル | 参照カラム | ON DELETE |
 |-----------|--------|-------------|-----------|-----------|
-| fk_table_definitions_project | project_id | projects | id | CASCADE |
+| fk_project | project_id | projects | id | CASCADE |
 
 ### 2.3 column_definitions（カラム定義）
 
@@ -92,26 +94,25 @@
 | 4 | logical_name | 論理名 | VARCHAR | 255 | × | × | × | - | カラム論理名 |
 | 5 | data_type | データ型 | VARCHAR | 50 | × | × | × | - | データ型 |
 | 6 | length | 長さ | INTEGER | - | ○ | × | × | - | データ長 |
-| 7 | nullable | NULL許可 | BOOLEAN | - | × | × | × | true | NULL値の許可 |
-| 8 | primary_key | プライマリキー | BOOLEAN | - | × | × | × | false | PKフラグ |
-| 9 | unique_key | ユニークキー | BOOLEAN | - | × | × | × | false | UKフラグ |
-| 10 | default_value | デフォルト値 | VARCHAR | 255 | ○ | × | × | - | デフォルト値 |
-| 11 | description | 説明 | TEXT | - | ○ | × | × | - | カラムの説明 |
-| 12 | column_order | カラム順序 | INTEGER | - | × | × | × | - | 表示順序 |
-| 13 | created_at | 作成日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード作成日時 |
-| 14 | updated_at | 更新日時 | TIMESTAMP | - | × | × | × | CURRENT_TIMESTAMP | レコード更新日時 |
+| 7 | precision | 精度 | INTEGER | - | ○ | × | × | - | 数値の精度 |
+| 8 | scale | スケール | INTEGER | - | ○ | × | × | - | 小数点以下の桁数 |
+| 9 | nullable | NULL許可 | BOOLEAN | - | × | × | × | true | NULL値の許可 |
+| 10 | primary_key | プライマリキー | BOOLEAN | - | × | × | × | false | PKフラグ |
+| 11 | unique_key | ユニークキー | BOOLEAN | - | × | × | × | false | UKフラグ |
+| 12 | default_value | デフォルト値 | VARCHAR | 255 | ○ | × | × | - | デフォルト値 |
+| 13 | description | 説明 | TEXT | - | ○ | × | × | - | カラムの説明 |
+| 14 | column_order | カラム順序 | INTEGER | - | × | × | × | - | 表示順序 |
 
 #### インデックス
 | インデックス名 | カラム | 種別 |
 |---------------|--------|------|
 | PRIMARY | id | PRIMARY KEY |
 | idx_column_definitions_table_id | table_definition_id | INDEX |
-| uk_column_definitions_table_physical | table_definition_id, physical_name | UNIQUE |
 
 #### 外部キー
 | 外部キー名 | カラム | 参照テーブル | 参照カラム | ON DELETE |
 |-----------|--------|-------------|-----------|-----------|
-| fk_column_definitions_table | table_definition_id | table_definitions | id | CASCADE |
+| fk_table_definition | table_definition_id | table_definitions | id | CASCADE |
 
 ## 3. データ型マッピング
 
@@ -124,9 +125,19 @@
 | INTEGER | INTEGER | INTEGER | 整数 |
 | BIGINT | BIGINT | BIGINT | 長整数 |
 | DECIMAL | DECIMAL(p,s) | DECIMAL(p,s) | 固定小数点数 |
+| NUMERIC | NUMERIC(p,s) | NUMERIC(p,s) | 数値 |
+| FLOAT | REAL | FLOAT | 浮動小数点数 |
+| DOUBLE | DOUBLE PRECISION | DOUBLE | 倍精度浮動小数点数 |
 | DATE | DATE | DATE | 日付 |
+| TIME | TIME | TIME | 時刻 |
 | TIMESTAMP | TIMESTAMP | TIMESTAMP | タイムスタンプ |
 | BOOLEAN | BOOLEAN | BOOLEAN | 真偽値 |
+| BINARY | BYTEA | BINARY | バイナリ |
+| VARBINARY | BYTEA | VARBINARY | 可変長バイナリ |
+| BLOB | BYTEA | BLOB | バイナリラージオブジェクト |
+| CLOB | TEXT | CLOB | 文字ラージオブジェクト |
+| JSON | JSON/JSONB | JSON | JSON |
+| XML | XML | XML | XML |
 
 ## 4. ER図
 
@@ -137,7 +148,8 @@ erDiagram
     
     projects {
         bigint id PK
-        varchar name UK
+        varchar code UK
+        varchar name
         text description
         timestamp created_at
         timestamp updated_at
@@ -161,29 +173,54 @@ erDiagram
         varchar logical_name
         varchar data_type
         integer length
+        integer precision
+        integer scale
         boolean nullable
         boolean primary_key
         boolean unique_key
         varchar default_value
         text description
         integer column_order
-        timestamp created_at
-        timestamp updated_at
     }
 ```
 
 ## 5. シーケンス定義
 
 ### 5.1 PostgreSQL
-各テーブルのIDカラムは、PostgreSQLの`SERIAL`型または`IDENTITY`列を使用して自動採番されます。
+各テーブルのIDカラムは、PostgreSQLの`BIGSERIAL`型を使用して自動採番されます。
 
 ### 5.2 H2 Database
-H2データベースでは、`AUTO_INCREMENT`を使用して自動採番されます。
+H2データベースでは、`BIGINT AUTO_INCREMENT`を使用して自動採番されます。
 
 ## 6. トリガー定義
 
-### 6.1 updated_atの自動更新
-現在の実装では、アプリケーション側（JPA）で`updated_at`の更新を管理しています。
+### 6.1 updated_atの自動更新（PostgreSQL）
+PostgreSQLでは、以下のトリガー関数とトリガーが定義されています：
+
+```sql
+-- トリガー関数
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- 各テーブルのトリガー
+CREATE TRIGGER update_projects_updated_at 
+    BEFORE UPDATE ON projects 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_table_definitions_updated_at 
+    BEFORE UPDATE ON table_definitions 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
+### 6.2 H2 Database
+H2では、アプリケーション側（JPA）で`updated_at`の更新を管理しています。
 
 ## 7. パフォーマンス考慮事項
 
@@ -191,24 +228,49 @@ H2データベースでは、`AUTO_INCREMENT`を使用して自動採番され�
 - 外部キーには自動的にインデックスを作成
 - 検索頻度の高いカラムにインデックスを設定
 - 複合ユニークキーにはインデックスを設定
+- プロジェクトコードには検索用インデックスを設定
 
-### 7.2 接続プール設定
-- 最大接続数: 20
-- 最小アイドル接続数: 5
+### 7.2 接続プール設定（本番環境）
+- 最大接続数: 10
+- 最小アイドル接続数: 2
 - 接続タイムアウト: 30秒
+- アイドルタイムアウト: 10分
+- 最大生存時間: 30分
+- リーク検出閾値: 60秒
 
 ## 8. バックアップ・リカバリ
 
 ### 8.1 開発環境（H2）
 - インメモリDBのため、再起動時にデータは失われる
-- 初期データは`data.sql`で投入
+- 初期スキーマは`schema-h2.sql`で定義
 
-### 8.2 本番環境（PostgreSQL）
-- 定期的なバックアップを推奨
-- `pg_dump`コマンドを使用したバックアップ
-- ポイントインタイムリカバリの設定を推奨
+### 8.2 本番環境（PostgreSQL/Supabase）
+- Supabaseの自動バックアップ機能を利用
+- 定期的なバックアップが自動実行される
+- ポイントインタイムリカバリが利用可能
+- `pg_dump`コマンドを使用した手動バックアップも可能
 
 ### 8.3 スキーマ管理
 - **H2用スキーマ**: `schema-h2.sql`
 - **PostgreSQL用スキーマ**: `schema-postgresql.sql`
 - 環境に応じて適切なスキーマファイルが自動選択される
+- `spring.sql.init.mode`の設定により初期化を制御
+
+## 9. Supabase固有の考慮事項
+
+### 9.1 接続設定
+- Connection Poolingを使用する場合、ポート番号は`6543`
+- 直接接続の場合、ポート番号は`5432`
+- SSL接続が推奨される
+
+### 9.2 環境変数
+- `SUPABASE_DB_HOST`: データベースホスト
+- `SUPABASE_DB_PORT`: ポート番号
+- `SUPABASE_DB_NAME`: データベース名（通常は`postgres`）
+- `SUPABASE_DB_USERNAME`: ユーザー名
+- `SUPABASE_DB_PASSWORD`: パスワード
+
+### 9.3 制限事項
+- 同時接続数の制限あり（プランによる）
+- ストレージ容量の制限あり（プランによる）
+- 無料プランでは1週間非アクティブでデータベースが一時停止される

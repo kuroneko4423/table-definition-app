@@ -1,41 +1,41 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: tabledef-postgres
-    environment:
-      POSTGRES_DB: tabledef
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # Note: When using Supabase, the postgres service is not needed as Supabase provides the database
+  # Uncomment the postgres service below if you want to use local PostgreSQL for development
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: tabledef-postgres
+  #   environment:
+  #     POSTGRES_DB: tabledef
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #     - ./src/main/resources/schema-postgresql.sql:/docker-entrypoint-initdb.d/01-schema.sql
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: tabledef-app
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    env_file:
+      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: tabledef
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
+      # Override SPRING_PROFILES_ACTIVE if needed
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
     ports:
       - "8080:8080"
 
-volumes:
-  postgres-data:
+# volumes:
+#   postgres-data:

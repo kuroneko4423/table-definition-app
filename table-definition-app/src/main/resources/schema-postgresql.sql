@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS column_definitions (
 );
 
 -- Create indexes
-CREATE INDEX idx_column_definitions_table_id ON column_definitions(table_definition_id);
-CREATE INDEX idx_table_definitions_project_id ON table_definitions(project_id);
-CREATE INDEX idx_projects_code ON projects(code);
+CREATE INDEX IF NOT EXISTS idx_column_definitions_table_id ON column_definitions(table_definition_id);
+CREATE INDEX IF NOT EXISTS idx_table_definitions_project_id ON table_definitions(project_id);
+CREATE INDEX IF NOT EXISTS idx_projects_code ON projects(code);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
